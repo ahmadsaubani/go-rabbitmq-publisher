@@ -75,7 +75,7 @@ func PublishMessage(ctx context.Context, queueName, routingKey string, message i
 					fmt.Println("Error unmarshalling response:", err)
 					return nil, fmt.Errorf("failed to parse response: %w", err)
 				}
-				fmt.Println("Received response:", d.Body)
+
 				return response, nil
 			}
 		case <-ctx.Done():
