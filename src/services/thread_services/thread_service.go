@@ -8,15 +8,27 @@ import (
 	"publisher-topic/src/utils/rabbitmqs"
 )
 
-func CreateThreadService(ctx context.Context, threadRequestDto threads.ThreadRequestDto) (map[string]interface{}, error) {
-	// Payload untuk request profile
+type ThreadServiceInterface interface {
+	CreateThreadService(ctx context.Context, threadRequestDto threads.ThreadRequestDto) (map[string]interface{}, error)
+	GetAllThreadService(ctx context.Context, tokenRequestDto commons.TokenRequestDto) (map[string]interface{}, error)
+	GetDetailThreadService(ctx context.Context, threadDetailRequestDto threads.ThreadDetailRequestDto) (map[string]interface{}, error)
+	LikeThreadService(ctx context.Context, likeThreadRequestDto threads.LikeThreadRequestDto) (map[string]interface{}, error)
+}
+
+type ThreadService struct{}
+
+func NewThreadService() ThreadServiceInterface {
+	return ThreadService{}
+}
+
+func (s ThreadService) CreateThreadService(ctx context.Context, threadRequestDto threads.ThreadRequestDto) (map[string]interface{}, error) {
+
 	payload := map[string]interface{}{
 		"token":       threadRequestDto.Token,
 		"title":       threadRequestDto.Title,
 		"description": threadRequestDto.Description,
 	}
 
-	// Kirim RPC dan langsung terima hasil unmarshal dalam map
 	resp, err := rabbitmqs.PublishMessage(ctx, "thread.create.request", "", payload)
 	if err != nil {
 		return nil, fmt.Errorf("failed to publish message: %w", err)
@@ -25,13 +37,12 @@ func CreateThreadService(ctx context.Context, threadRequestDto threads.ThreadReq
 	return resp, nil
 }
 
-func GetAllThreadService(ctx context.Context, tokenRequestDto commons.TokenRequestDto) (map[string]interface{}, error) {
-	// Payload untuk request profile
+func (s ThreadService) GetAllThreadService(ctx context.Context, tokenRequestDto commons.TokenRequestDto) (map[string]interface{}, error) {
+
 	payload := map[string]interface{}{
 		"token": tokenRequestDto.Token,
 	}
 
-	// Kirim RPC dan langsung terima hasil unmarshal dalam map
 	resp, err := rabbitmqs.PublishMessage(ctx, "thread.getAll.request", "", payload)
 	fmt.Println("resp", resp)
 	if err != nil {
@@ -41,7 +52,7 @@ func GetAllThreadService(ctx context.Context, tokenRequestDto commons.TokenReque
 	return resp, nil
 }
 
-func GetDetailThreadService(ctx context.Context, threadDetailRequestDto threads.ThreadDetailRequestDto) (map[string]interface{}, error) {
+func (s ThreadService) GetDetailThreadService(ctx context.Context, threadDetailRequestDto threads.ThreadDetailRequestDto) (map[string]interface{}, error) {
 
 	payload := map[string]interface{}{
 		"token":     threadDetailRequestDto.Token,
@@ -57,7 +68,7 @@ func GetDetailThreadService(ctx context.Context, threadDetailRequestDto threads.
 	return resp, nil
 }
 
-func LikeThreadService(ctx context.Context, likeThreadRequestDto threads.LikeThreadRequestDto) (map[string]interface{}, error) {
+func (s ThreadService) LikeThreadService(ctx context.Context, likeThreadRequestDto threads.LikeThreadRequestDto) (map[string]interface{}, error) {
 
 	payload := map[string]interface{}{
 		"token":     likeThreadRequestDto.Token,

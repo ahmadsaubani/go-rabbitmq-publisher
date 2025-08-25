@@ -7,7 +7,17 @@ import (
 	"publisher-topic/src/utils/rabbitmqs"
 )
 
-func RegisterService(ctx context.Context, registerRequest registers.RegisterRequestDto) (map[string]interface{}, error) {
+type RegisterServiceInterface interface {
+	Register(ctx context.Context, registerRequest registers.RegisterRequestDto) (map[string]interface{}, error)
+}
+
+type RegisterService struct{}
+
+func NewRegisterService() RegisterServiceInterface {
+	return RegisterService{}
+}
+
+func (s RegisterService) Register(ctx context.Context, registerRequest registers.RegisterRequestDto) (map[string]interface{}, error) {
 	resp, err := rabbitmqs.PublishMessage(ctx, "auth.register.request", "", registerRequest)
 	if err != nil {
 		return nil, fmt.Errorf("failed to publish message: %w", err)

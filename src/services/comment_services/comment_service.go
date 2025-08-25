@@ -7,7 +7,17 @@ import (
 	"publisher-topic/src/utils/rabbitmqs"
 )
 
-func CreateCommentService(ctx context.Context, commentRequestDto comments.CommentRequestDto) (map[string]interface{}, error) {
+type CommentServiceInterface interface {
+	CreateComment(ctx context.Context, commentRequestDto comments.CommentRequestDto) (map[string]interface{}, error)
+}
+
+type CommentService struct{}
+
+func NewCommentService() CommentServiceInterface {
+	return CommentService{}
+}
+
+func (s CommentService) CreateComment(ctx context.Context, commentRequestDto comments.CommentRequestDto) (map[string]interface{}, error) {
 
 	payload := map[string]interface{}{
 		"token":     commentRequestDto.Token,

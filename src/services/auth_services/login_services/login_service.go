@@ -7,7 +7,18 @@ import (
 	"publisher-topic/src/utils/rabbitmqs"
 )
 
-func LoginService(ctx context.Context, loginRequest logins.LoginRequestDto) (map[string]interface{}, error) {
+type LoginServiceInterface interface {
+	Login(ctx context.Context, loginRequest logins.LoginRequestDto) (map[string]interface{}, error)
+	GetProfile(ctx context.Context, token string) (map[string]interface{}, error)
+}
+
+type LoginService struct{}
+
+func NewLoginService() LoginServiceInterface {
+	return LoginService{}
+}
+
+func (s LoginService) Login(ctx context.Context, loginRequest logins.LoginRequestDto) (map[string]interface{}, error) {
 	resp, err := rabbitmqs.PublishMessage(ctx, "auth.login.request", "", loginRequest)
 	if err != nil {
 		return nil, fmt.Errorf("failed to publish message: %w", err)
@@ -16,7 +27,7 @@ func LoginService(ctx context.Context, loginRequest logins.LoginRequestDto) (map
 	return resp, nil
 }
 
-func GetProfileService(ctx context.Context, token string) (map[string]interface{}, error) {
+func (s LoginService) GetProfile(ctx context.Context, token string) (map[string]interface{}, error) {
 	payload := map[string]interface{}{
 		"token": token,
 	}

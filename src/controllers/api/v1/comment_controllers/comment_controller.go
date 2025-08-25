@@ -6,13 +6,27 @@ import (
 	"net/http"
 	"publisher-topic/src/dtos/comments"
 	"publisher-topic/src/helpers"
-	"publisher-topic/src/services/comment_services"
+	"publisher-topic/src/services"
 	"time"
 
 	"github.com/gin-gonic/gin"
 )
 
-func CreateCommentController() gin.HandlerFunc {
+type CommentControllerInterface interface {
+	CreateCommentController() gin.HandlerFunc
+}
+
+type CommentController struct {
+	Service services.ServiceProvider
+}
+
+func NewCommentController(service services.ServiceProvider) CommentControllerInterface {
+	return CommentController{
+		Service: service,
+	}
+}
+
+func (ser CommentController) CreateCommentController() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var commentRequest comments.CommentRequestDto
 		authHeader := c.GetHeader("Authorization")
@@ -31,7 +45,7 @@ func CreateCommentController() gin.HandlerFunc {
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 
-		response, _ := comment_services.CreateCommentService(ctx, commentRequest)
+		response, _ := ser.Service.CommentService.CreateComment(ctx, commentRequest)
 		if success, ok := response["success"].(bool); ok && !success {
 			helpers.ErrorResponse(c, fmt.Sprintf("login failed: %v", response["message"]), http.StatusUnauthorized)
 			return
